@@ -16,6 +16,10 @@ Working prototype in daily use since November 2026. Code will be published here 
 
 Tested with Samsung Frame Pro (2025). Other Frame models may need adjustments.
 
+## Acknowledgements
+
+The Samsung Frame upload is built on [smart-frame-tv](https://github.com/Seagey/smart-frame-tv) (MIT licence), with a fix for encrypted uploads on the Frame Pro. Thank you for the groundwork.
+
 ## Licence
 
 No licence has been chosen yet, so all rights are reserved for now.
