@@ -1,0 +1,172 @@
+# familiehub – konfigurasjon
+#
+# Kopier denne filen til config.yaml og fyll inn dine verdier.
+# config.yaml legges ALDRI i Git: den inneholder hjemmets koordinater og e-postadressen din.
+
+sted:
+  # Koordinater for hjemmet. MET vil ha maks 4 desimaler (ca. 10 m presisjon).
+  # Finn dem f.eks. på norgeskart.no (klikk på huset) eller ved å høyreklikke i et kart.
+  # Eksempelet under er Oslo sentrum – bytt til hjemmet.
+  lat: 59.9133
+  lon: 10.7389
+  # Valgfritt: høyde over havet i meter. Gir mer presis temperatur. null = la MET anslå.
+  hoyde_moh: null
+
+yr:
+  # MET Norway krever en User-Agent som sier hvem som spør, med kontaktinfo.
+  # Bytt til din egen e-postadresse (programmet nekter å spørre med eksempeladressen).
+  user_agent: "familiehub/0.1 din.epost@eksempel.no"
+
+tidssone: "Europe/Oslo"
+
+dagen:
+  # Tidsrommet barna er ute. Brukes til «føles som», nedbør og vind (og klesråd i fase 3).
+  skoletid_fra: 8
+  skoletid_til: 15
+  # Klokkeslettene som vises som små værbokser. Passerte klokkeslett skjules.
+  vis_timer: [8, 12, 16]
+  # Fra denne timen viser bildet kvelden: været og klesrådet for i morgen, og kalenderen
+  # «I kveld» (det som gjenstår i dag) + «I morgen». Før det: i dag. Valgfritt (06 #41).
+  kveld_fra: 18
+
+render:
+  bredde: 3840
+  hoyde: 2160
+  # null = finn Google Chrome (Windows) eller Chromium (Raspberry Pi) automatisk.
+  # Ellers full sti, f.eks. "C:/Program Files/Google/Chrome/Application/chrome.exe"
+  chrome: null
+
+tv:
+  ip: "192.168.1.50"    # TV-ens adresse – gi den gjerne fast IP på hjemmenettet
+  port: 8002
+  # Navnet TV-en kjenner denne maskinen som. PC-en er paret som «SmartFrame».
+  navn: "SmartFrame"
+
+klesrad:
+  # Klesråd ut fra kaldeste «føles som» i skoletiden (se dagen: over).
+  # Alt her kan endres uten å røre koden. Mangler en nøkkel, brukes standarden i logic/clothing.py.
+  # Grenser i °C, sammenlignet med avrundet temperatur (samme tall som på skjermen):
+  #   under −20 → iskaldt · −20 til −11 → veldig_kaldt · −10 til −1 → kaldt
+  #   0 til 7 → kjolig · 8 til 15 → mildt · over 15 → varmt
+  grenser:
+    iskaldt: -20
+    veldig_kaldt: -10
+    kaldt: 0
+    kjolig: 8
+    mildt: 16
+  regn_mm: 1.0      # mer nedbør enn dette i skoletiden → regntøy
+  vind_ms: 8        # sterkere vind enn dette → vindtett
+
+  # Værfiguren. «Veldig kaldt» bruker samme figur som «kaldt».
+  figur:
+    kaldt:  ["🥶", "⛄"]
+    kjolig: ["🧥", "🧤"]
+    mildt:  ["🧥"]
+    varmt:  ["😎", "👕"]
+    regn:   ["☔", "👢"]     # legges til ved regn eller sludd
+    sno:    ["❄️"]          # legges til ved snø
+
+  # Huskelisten: én liste per temperaturtrinn, pluss tillegg.
+  huskeliste:
+    iskaldt:      ["Ull innerst", "Ullfleece", "Vinterdress", "Lue", "Balaklava", "Tykke votter", "Vintersko", "Kuldekrem"]
+    veldig_kaldt: ["Ull innerst", "Ullfleece", "Vinterdress", "Lue", "Hals", "Tykke votter", "Vintersko"]
+    kaldt:        ["Ull innerst", "Vinterdress", "Lue", "Votter", "Vintersko"]
+    kjolig:       ["Fleece eller tynn ull", "Høstjakke eller dress", "Lue", "Tynne votter"]
+    mildt:        ["Genser", "Lett jakke"]
+    varmt:        ["T-skjorte", "Tynn genser i sekken"]
+    regn:         ["Regntøy", "Støvler"]
+    regn_kaldt:   ["Vanntett ytterst", "Vanntette vintersko"]   # regn når det er under 0
+    sludd:        ["Vanntett ytterst", "Ekstra votter i sekken"]
+    sno:          ["Ekstra votter i sekken"]
+    vind:         ["Vindtett ytterst", "Hals"]
+    sol:          ["Solhatt"]                                   # bare når det er varmt og sol
+
+ute:
+  # Ikoner i feltet «Ute i dag» – så de minste skjønner hvorfor de skal ha på seg det de skal.
+  # Valgfritt: mangler «ute:» i config.yaml, brukes standarden i logic/outdoor.py (lik dette).
+  # Legg bare inn det du vil endre (se 03 «Konfigurasjon»). Hver verdi er [emoji, ord].
+  # Temperaturtrinnene, regngrensen (regn_mm) og vindgrensen for «mye vind» (vind_ms)
+  # hentes fra «klesrad:», så ikonene og klesrådet alltid henger sammen.
+  foles:
+    iskaldt:      ["🧊", "Iskaldt"]        # under −20
+    veldig_kaldt: ["🥶", "Veldig kaldt"]   # −20 til −11
+    kaldt:        ["⛄", "Kaldt"]          # −10 til −1
+    kjolig:       ["🧣", "Kjølig"]
+    mildt:        ["🙂", "Mildt"]
+    varmt:        ["😎", "Varmt"]
+  nedbor:
+    ingen: ["🌂", "Tørt"]      # mindre enn nedbor_min_mm
+    litt:  ["💧", "Litt"]      # opp til regngrensen i klesrådet (1 mm)
+    regn:  ["☔", "Regn"]
+    sludd: ["🌨️", "Sludd"]
+    sno:   ["❄️", "Snø"]
+  nedbor_min_mm: 0.1
+  vind:
+    rolig: ["🍃", "Rolig"]
+    litt:  ["💨", "Litt vind"]   # fra og med vind_litt_ms
+    mye:   ["🌬️", "Mye vind"]    # over klesrad.vind_ms (8 m/s)
+  vind_litt_ms: 4
+
+kalender:
+  # Valgfritt – trenger ikke stå i config.yaml. Selve lenken ligger i .env (FAMILIEKALENDER_ICS).
+  # Feltet «I dag» viser samme dag som været: etter skoletid (dagen: skoletid_til) vises i morgen.
+  maks_hendelser: 6       # flere enn dette: de siste samles i «+N til i kalenderen»
+  maks_i_kveld: 4         # om kvelden: maks linjer i «I kveld» over «I morgen»
+
+foto:
+  # Valgfritt – trenger ikke stå i config.yaml. Dagens familiefoto vises under «I dag».
+  # Legg bildene (.jpg, .png, .webp) i mappen «bilder» i prosjektet. Ett bilde per dag, på rundgang.
+  # Filnavnet blir bildeteksten («Hjemme, oktober 2026.jpg»). Kameranavn (IMG_1234) gir ingen tekst.
+  # Ingen bilder i mappen = ingen fotofelt, og kalenderen får hele høyre side.
+  mappe: "bilder"   # eller full sti, f.eks. "C:/Users/navn/Pictures/Familiehub"
+  vis: true         # false = skru av fotoet uten å flytte bildene
+
+dra:
+  # «Nå må du dra!» (fase 5.1): eget bilde på skoledager, når barna skal ut døra.
+  # Valgfritt – trenger ikke stå i config.yaml. Legg bare inn det du vil endre (se 03 «Konfigurasjon»).
+  # Skoledager: mandag–fredag, unntatt fridagene i skolerute.yaml (kommunens skolerute).
+  vis: true            # false = aldri automatisk (python main.py --dra lager det likevel)
+  fra: "08:00"         # skriv klokkeslett med fnutter
+  til: "08:10"         # fra kl. 08:10 lages vanlig dagbilde igjen
+  tittel: "Nå må du dra!"
+  undertekst: "Sko, jakke og sekk – av gårde!"   # "" = ingen undertekst
+  ha_med: ["Sekk", "Matpakke", "Drikkeflaske"]   # samme hver dag
+  maks_hendelser: 4    # «I dag for barna»: bare hendelser merket med et barn, og felles heldag
+  skolerute: "skolerute.yaml"
+
+personer:
+  # Hvem en kalenderhendelse gjelder, merkes med initialen først i tittelen, så et mellomrom:
+  #   «L Turdag – matpakke»  ·  «M Fotball»  ·  flere personer: «E L Foreldremøte» eller «E & L Foreldremøte»
+  # Initialen må stå alene og ha stor bokstav som her («Lisa …» og «l …» er ikke merker).
+  # Hendelser uten merke vises som felles for hele familien.
+  #   navn:  det som står på skjermen (fornavn eller kallenavn – gjester kan se skjermen)
+  #   merke: initialen dere skriver i kalenderen (store/små bokstaver spiller ingen rolle)
+  #   farge: fast farge per person (prikken i «I dag»). Paletten fra fase 5 (06 #40) skiller seg
+  #          også for fargesvake: brun #6d5a4a, blå #2f6aa8, grønn #1e8a6e, oransje #c96f22, plomme #a64d86
+  #   farge_kveld: lysere utgave mot det mørke kveldspapiret fra kl. 18 (fase 5.2). Valgfritt, men uten den
+  #          brukes dagfargen, som er for mørk om kvelden. Kveldspaletten: sand #dbb996, blå #6aa5e0,
+  #          mint #9ee4c6, oransje #e28030, rosa plomme #d68aaf (minst 4,6:1, tydelig for fargesvake)
+  #   barn:  true for barna. «Nå må du dra!» viser bare barnas avtaler (fase 5.1). Valgfritt for voksne.
+  - navn: "Voksen 1"
+    merke: "A"
+    farge: "#6d5a4a"
+    farge_kveld: "#dbb996"
+  - navn: "Voksen 2"
+    merke: "B"
+    farge: "#2f6aa8"
+    farge_kveld: "#6aa5e0"
+  - navn: "Barn 13"
+    merke: "C"
+    farge: "#1e8a6e"
+    farge_kveld: "#9ee4c6"
+    barn: true
+  - navn: "Barn 8"
+    merke: "D"
+    farge: "#c96f22"
+    farge_kveld: "#e28030"
+    barn: true
+  - navn: "Barn 4"
+    merke: "F"
+    farge: "#a64d86"
+    farge_kveld: "#d68aaf"
+    barn: true

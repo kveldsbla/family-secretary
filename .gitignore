@@ -218,3 +218,20 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ---------------------------------------------------------------- Family Secretary
+# Private filer – laget av oppsett.py, aldri i Git
+config.yaml
+config.yaml.bak
+.env
+data/
+skolerute.yaml
+bilder/*
+!bilder/LESMEG.md
+# Genererte filer
+output/
+logs/
+# Fontene hentes med hent_fonter.py og distribueres ikke herfra
+render/static/fonts/*.ttf
+render/static/fonts/OFL-*.txt
+LICENSES/NotoColorEmoji-OFL.txt

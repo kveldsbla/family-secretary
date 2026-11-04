@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="nb"{% if kveld %} class="kveld"{% endif %}>
+<head>
+<meta charset="utf-8">
+<title>Familiehub</title>
+<style>
+{{ font_css | safe }}
+
+/* ------------------------------------------------------------------
+   Fase 5: «Galleri + barnebok» (tavle 5, godkjent på TV-en 3. nov 2026).
+   Passepartout og dempede farger fra galleri, runde pastellfelt fra barnebok.
+   Alt er laget for 3840 x 2160 og 65" TV lest fra 3–4 meter.
+   Minste tekst 40 px (06 #36). Juster størrelser og farger her øverst.
+   Samme mal hele dagen: før kl. 18 «I dag», fra kl. 18 «I kveld» + «I morgen» (06 #42).
+   Fra kl. 18 også duse kveldsfarger, «Kveldsblå» (fase 5.2) – se :root.kveld under.
+   ------------------------------------------------------------------ */
+:root {
+  /* Farger */
+  --passepartout: #e7e1d5;   /* «matten» rundt bildet */
+  --papir:        #f7f3ec;   /* flaten innenfor (ikke ren hvit: blender på Frame-skjermen) */
+  --kant:         #d3cbbc;   /* ytre kant på flaten */
+  --snitt:        #efeae0;   /* skrå «snittkant» innenfor kanten */
+  --blekk:        #3a3631;   /* hovedtekst */
+  --dempet:       #6e675c;   /* etiketter og sekundærtekst */
+  --linje:        #ddd5c7;
+  --periode:      #e3ebef;   /* boksene kl. 08/12/16 */
+  --ute-foles:    #d6e2e8;   /* «Ute i dag»: himmelblå */
+  --ute-nedbor:   #dde5d5;   /* salvie */
+  --ute-vind:     #eee3c6;   /* smør */
+  --klaer:        #f0dccf;   /* fersken */
+  --klaer-tekst:  #5e4c40;
+  --foto-tom:     #6f6a5e;   /* bakgrunn mens fotoet lastes / ved feil */
+
+  /* Tekststørrelser – endre her for å skalere hele bildet */
+  --etikett:     40px;       /* «UTE I DAG», «føles som», bunnlinjen */
+  --tekst:       46px;       /* huskeliste, kalender, bildetekst */
+  --tekst-stor:  48px;       /* ord under tallene, «føles som −6°» */
+  --tall:        86px;       /* tall i «Ute i dag» */
+  --tall-liten:  76px;       /* tall kl. 08/12/16 */
+  --kategori:    68px;       /* «Kaldt» i klesrådet */
+  --overskrift: 104px;       /* ukedag og dato */
+  --temp:       330px;       /* temperaturen nå */
+
+  /* Ikoner (emojier) – store for de minste */
+  --ikon-naa:   176px;
+  --ikon:       130px;       /* «Ute i dag» */
+  --ikon-figur: 104px;       /* værfiguren i klesrådet */
+  --ikon-liten:  82px;       /* kl. 08/12/16 */
+
+  /* Form og luft */
+  --runding:     52px;
+  --luft:        64px;       /* mellom feltene */
+
+  --serif: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --sans:  "Jost", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --emoji: "Noto Color Emoji", "Segoe UI Emoji", "Apple Color Emoji", sans-serif;   /* innebygd font først: likt på PC og Pi */
+}
+/* ---- Kveld (fra kl. 18, fase 5.2): «Kveldsblå» – dus og mørk, men like lesbar.
+   main.py setter class="kveld" på <html>. Kontrast mot kveldspapiret: blekk 10,5, dempet 5,3
+   (minst 3,95 på rutene). Personfargene om kvelden er farge_kveld i config.yaml (minst 4,6). */
+:root.kveld {
+  --passepartout: #23262f;
+  --papir:        #2c303b;
+  --kant:         #3c4150;
+  --snitt:        #343846;
+  --blekk:        #ebe5d9;
+  --dempet:       #aaa497;
+  --linje:        #444a58;
+  --periode:      #353c48;
+  --ute-foles:    #3a4350;   /* dus blå */
+  --ute-nedbor:   #3a4238;   /* dus salvie */
+  --ute-vind:     #4a4334;   /* dus smør */
+  --klaer:        #4a3d37;   /* dus fersken */
+  --klaer-tekst:  #ead6c8;
+  --foto-tom:     #3a3f4b;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 3840px; height: 2160px; overflow: hidden; }
+body {
+  background: var(--passepartout);
+  color: var(--blekk);
+  font-family: var(--sans);
+  padding: 100px;
+}
+.flate {
+  width: 100%; height: 100%; overflow: hidden;
+  background: var(--papir);
+  border: 3px solid var(--kant);
+  box-shadow: inset 0 0 0 16px var(--snitt);   /* snittkant som i en ekte passepartout */
+  padding: 100px 140px 72px;
+  display: flex; flex-direction: column; gap: var(--luft);
+}
+/* .med-kalender settes når «I dag» har hendelser (brukes av testene; krymping fra fase 4 er fjernet) */
+
+.etikett { font-size: var(--etikett); font-weight: 500; letter-spacing: 0.16em;
+           text-transform: uppercase; color: var(--dempet); }
+.e { font-family: var(--emoji); font-weight: 400; line-height: 1.1; }
+/* Værtall med «lining»-sifre: Cormorant har ellers gammeldagse sifre der 3, 4, 5, 7 og 9 går under
+   linjen (og 1 ser ut som I). Lining-sifre er lettere å lese på avstand og går ikke inn i teksten under. */
+.naa .temp, .periode .temp, .rute .tall { font-variant-numeric: lining-nums; }
+
+/* ---- Datolinje */
+header { display: flex; align-items: baseline; justify-content: space-between;
+         border-bottom: 2px solid var(--linje); padding-bottom: 40px; }
+header h1 { font-family: var(--serif); font-size: var(--overskrift); font-weight: 600; line-height: 1; }
+
+/* ---- To kolonner: vær/ute/klesråd til venstre, kalender og foto til høyre */
+.innhold { flex: 1; min-height: 0; display: flex; gap: 150px; }
+.venstre { width: 1640px; flex: none; display: flex; flex-direction: column; gap: 48px; }
+.hoyre   { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 56px; }
+
+/* Været nå + kl. 08/12/16 */
+.vaer { display: flex; align-items: center; justify-content: space-between; gap: 60px; }
+.naa { display: flex; align-items: center; gap: 30px; }
+.naa .e { font-size: var(--ikon-naa); line-height: 1; }
+.naa .temp { font-family: var(--serif); font-size: var(--temp); font-weight: 500; line-height: 0.85; }
+.naa .tekst { font-size: var(--tekst-stor); color: var(--dempet); margin-top: 28px; }
+.naa .tekst + .tekst { margin-top: 8px; }
+.perioder { display: flex; gap: 24px; }
+.perioder-felt { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.periode { background: var(--periode); border-radius: 40px; padding: 26px 32px;
+           display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.periode .kl { font-size: var(--etikett); font-weight: 500; color: var(--dempet); }
+.periode .e { font-size: var(--ikon-liten); line-height: 1.15; }
+.periode .temp { font-family: var(--serif); font-size: var(--tall-liten); font-weight: 600; line-height: 1; }
+
+/* Ute i dag: stort ikon for de minste, tall og ord for oss andre */
+.ute .etikett { margin-bottom: 26px; }
+.ruter { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 36px; }
+.rute { border-radius: var(--runding); padding: 36px 28px;
+        display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.rute.foles  { background: var(--ute-foles); }
+.rute.nedbor { background: var(--ute-nedbor); }
+.rute.vind   { background: var(--ute-vind); }
+.rute .e { font-size: var(--ikon); line-height: 1.05; }
+.rute .tall { font-family: var(--serif); font-size: var(--tall); font-weight: 600; line-height: 1; }
+.rute .tall small { font-family: var(--sans); font-weight: 400; font-size: var(--tekst-stor); margin-left: 8px; }
+.rute .ord { font-size: var(--tekst-stor); font-weight: 500; }
+.rute .hva { font-size: var(--etikett); color: var(--blekk); opacity: 0.75; }
+
+/* Klesråd: felles for hele familien – værfigur til venstre, huskeliste til høyre */
+.klaer { background: var(--klaer); border-radius: var(--runding); padding: 40px 64px;
+         display: flex; gap: 64px; align-items: center; }
+.klaer .figur { min-width: 360px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.klaer .figur .etikett { color: var(--klaer-tekst); }
+.klaer .figur .e { font-size: var(--ikon-figur); white-space: nowrap; }
+.klaer .kategori { font-family: var(--serif); font-size: var(--kategori); font-weight: 600; line-height: 1; }
+.klaer ul { flex: 1; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 24px 48px; font-size: var(--tekst); }
+.klaer ul.mange { row-gap: 10px; }      /* 7–9 plagg: tettere, så alt får plass */
+.klaer ul.flest { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 36px; font-size: var(--etikett); }   /* 10+ plagg */
+.klaer li { display: flex; align-items: center; gap: 18px; line-height: 1.25; }
+.klaer li::before { content: ""; flex: none; width: 34px; height: 34px;
+                    border: 4px solid var(--blekk); border-radius: 10px; }
+
+.mangler { font-size: var(--tekst-stor); color: var(--dempet); }
+
+/* ---- I dag: hendelser fra familiekalenderen (06 #31–#32).
+   Farget prikk per person (farge fra config.yaml), tom ring = felles for hele familien. */
+/* Alle kalenderlistene («I kveld», «I dag», «I morgen») deler ett rutenett, så tid, navn og
+   tittel står i de samme kolonnene i begge listene. Seksjonene og listene er «usynlige» (display:
+   contents), og cellene legger seg rett i rutenettet. */
+.kalender { display: grid; grid-template-columns: max-content max-content minmax(0, 1fr);
+            font-size: var(--tekst); align-content: start; }
+.idag, .idag ul, .idag li { display: contents; }
+.idag ul { list-style: none; }
+.idag .etikett { grid-column: 1 / -1; margin-bottom: 18px; }
+.idag + .idag .etikett { margin-top: 56px; }      /* luft mellom «I kveld» og «I morgen» */
+.idag li:last-child > span { border-bottom: 2px solid var(--linje); }
+.idag li > span { padding: 24px 0; border-top: 2px solid var(--linje); line-height: 1.3; min-width: 0; }
+.idag .tid { padding-right: 56px; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.idag .tid.heldag { font-weight: 400; color: var(--dempet); }
+.idag .hvem { padding-right: 56px; display: flex; align-items: center; gap: 18px; white-space: nowrap; }
+.idag .prikker { display: flex; gap: 8px; }
+.idag .prikk { flex: none; width: 40px; height: 40px; border-radius: 50%; }
+.idag .prikk.felles { box-shadow: inset 0 0 0 4px var(--blekk); }
+.idag .hva { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.idag li.flere .hva { color: var(--dempet); }
+.idag .tomt { grid-column: 1 / -1; font-size: var(--tekst); color: var(--dempet); padding: 24px 0;
+              border-top: 2px solid var(--linje); border-bottom: 2px solid var(--linje); }
+
+/* ---- Dagens foto: fyller plassen under kalenderen */
+.foto { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 18px; }
+.foto img { flex: 1; min-height: 0; width: 100%; display: block; object-fit: cover;
+            border-radius: var(--runding); background: var(--foto-tom); }
+.foto figcaption { font-family: var(--serif); font-style: italic; font-size: var(--tekst);
+                   color: var(--dempet); padding-left: 24px; }
+
+footer { display: flex; justify-content: space-between; font-size: var(--etikett); color: var(--dempet); }
+</style>
+</head>
+<body>
+<div class="flate{% if plan and plan.hendelser %} med-kalender{% endif %}">
+
+  <header>
+    <h1>{{ dato.ukedag }} {{ dato.dato }}</h1>
+    <div class="etikett">Uke {{ dato.uke }}</div>
+  </header>
+
+  <div class="innhold">
+
+    <div class="venstre">
+    {% if vaer %}
+      <section class="vaer">
+        <div class="naa">
+          <div class="e">{{ vaer.now.emoji }}</div>
+          <div>
+            <div class="temp">{{ vaer.now.temp }}</div>
+            <div class="tekst">Nå · {{ vaer.now.text }}</div>
+            {% if vaer.now.show_feels %}<div class="tekst">føles som {{ vaer.now.feels }}</div>{% endif %}
+          </div>
+        </div>
+        {% if vaer.periods %}
+        <div class="perioder-felt">
+        {% if vaer.day_label != "I dag" %}<div class="etikett">Været {{ vaer.day_label | lower }}</div>{% endif %}
+        <div class="perioder">
+          {% for p in vaer.periods %}
+          <div class="periode">
+            <span class="kl">{{ p.label }}</span>
+            <span class="e">{{ p.emoji }}</span>
+            <span class="temp">{{ p.temp }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        </div>
+        {% endif %}
+      </section>
+
+      {% if vaer.outdoor %}
+      <section class="ute">
+        <h2 class="etikett">Ute {{ vaer.outdoor.label | lower }}</h2>
+        <div class="ruter">
+          <div class="rute foles">
+            {% if ute %}<span class="e">{{ ute.foles.emoji }}</span>{% endif %}
+            <span class="tall">{{ vaer.outdoor.feels_min }}</span>
+            {% if ute %}<span class="ord">{{ ute.foles.tekst }}</span>{% endif %}
+            <span class="hva">føles som</span>
+          </div>
+          <div class="rute nedbor">
+            {% if ute %}<span class="e">{{ ute.nedbor.emoji }}</span>{% endif %}
+            <span class="tall">{{ vaer.outdoor.precip }}<small>mm</small></span>
+            {% if ute %}<span class="ord">{{ ute.nedbor.tekst }}</span>{% endif %}
+            <span class="hva">nedbør</span>
+          </div>
+          {% if not ute or ute.vind.emoji %}
+          <div class="rute vind">
+            {% if ute %}<span class="e">{{ ute.vind.emoji }}</span>{% endif %}
+            <span class="tall">{{ vaer.outdoor.wind_max }}<small>m/s</small></span>
+            {% if ute %}<span class="ord">{{ ute.vind.tekst }}</span>{% endif %}
+            <span class="hva">vind</span>
+          </div>
+          {% endif %}
+        </div>
+      </section>
+      {% endif %}
+
+      {% if klar %}
+      <section class="klaer">
+        <div class="figur">
+          <h2 class="etikett">Klesråd</h2>
+          <div class="e">{% for e in klar.figur %}{{ e }}{% endfor %}</div>
+          <div class="kategori">{{ klar.kategori_tekst }}</div>
+        </div>
+        {% set antall_plagg = klar.huskeliste | length %}
+        <ul{% if antall_plagg > 9 %} class="mange flest"{% elif antall_plagg > 6 %} class="mange"{% endif %}>
+          {% for plagg in klar.huskeliste %}<li>{{ plagg }}</li>{% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+    {% else %}
+      <div class="mangler">– &nbsp;Været er ikke tilgjengelig akkurat nå</div>
+    {% endif %}
+    </div>
+
+    <div class="hoyre">
+      {% macro kalender(p) %}
+      <section class="idag">
+        <h2 class="etikett">{{ p.tittel }}</h2>
+        {% if p.feil %}
+        <p class="tomt">– &nbsp;Kalenderen er ikke tilgjengelig akkurat nå</p>
+        {% elif not p.hendelser %}
+        <p class="tomt">{% if p.passert %}Ingenting mer i kalenderen{% else %}Ingenting i kalenderen{% endif %}</p>
+        {% else %}
+        <ul>
+          {% for h in p.hendelser %}
+          <li>
+            <span class="tid{% if h.heldag %} heldag{% endif %}">{{ h.tid }}</span>
+            <span class="hvem">{% if h.felles %}<span class="prikk felles"></span>{% else %}<span class="prikker">{% for x in h.personer %}<span class="prikk" style="background: {{ (x.farge_kveld or x.farge) if kveld else x.farge }}"></span>{% endfor %}</span>{{ h.navn }}{% endif %}</span>
+            <span class="hva">{{ h.tittel }}</span>
+          </li>
+          {% endfor %}
+          {% if p.flere %}<li class="flere"><span class="tid"></span><span class="hvem"></span><span class="hva">+{{ p.flere }} til i kalenderen</span></li>{% endif %}
+        </ul>
+        {% endif %}
+      </section>
+      {% endmacro %}
+
+      {# Kveld (fra kl. 18): det som gjenstår i kveld står over morgendagen. Da trengs plassen,
+         så fotoet vises bare når det ikke er noe igjen i kveld. #}
+      {% set i_kveld = plan.kveld if plan and plan.kveld and plan.kveld.hendelser else none %}
+      {% if plan %}
+      <div class="kalender">
+        {% if i_kveld %}{{ kalender(i_kveld) }}{% endif %}
+        {{ kalender(plan) }}
+      </div>
+      {% endif %}
+
+      {% if foto and not i_kveld %}
+      <figure class="foto">
+        <img src="{{ foto.src }}" alt="">
+        {% if foto.tekst %}<figcaption>{{ foto.tekst }}</figcaption>{% endif %}
+      </figure>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <footer>
+    <span>Oppdatert {{ oppdatert }}{% if demo %} · DEMODATA{% endif %}{% if tid_satt %} · TID SATT{% endif %}</span>
+    <span>Værdata: MET Norway</span>
+  </footer>
+
+</div>
+</body>
+</html>

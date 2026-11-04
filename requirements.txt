@@ -1,0 +1,14 @@
+# familiehub – Python-biblioteker (alle gratis, åpen kildekode, uten konto)
+# Installeres med: .venv\Scripts\python -m pip install -r requirements.txt
+requests==2.34.2      # henter data fra nettet (Yr)
+Jinja2==3.1.6         # fyller HTML-malen med data
+MarkupSafe==3.0.3     # brukes av Jinja2 til trygg escaping
+PyYAML==6.0.3         # leser config.yaml
+tzdata>=2025.2 ; sys_platform == "win32"   # tidssoner (Europe/Oslo) – Windows mangler dem
+Pillow==13.0.0        # gjør PNG om til JPEG før opplasting
+icalendar==7.3.0      # leser familiekalenderen (.ics)
+recurring-ical-events==3.8.2   # gjentakende hendelser (fotball hver tirsdag), unntak og flyttede ganger
+# Samsung-biblioteket, låst til samme versjon som smart-frame-tv er testet med.
+# (Pakken med samme navn på PyPI er en annen gren uten Art Mode.)
+samsungtvws @ https://github.com/NickWaterton/samsung-tv-ws-api/archive/fe95ef1d784cd32f49bf9a07ec479576574eea07.zip
+pytest==9.1.1         # kjører testene

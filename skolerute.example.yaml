@@ -1,0 +1,42 @@
+# Skolerute – EKSEMPEL (Bærum kommune 2026–2028)
+#
+# Fridager i skolen. På disse dagene (og i helgene) vises IKKE «Nå må du dra!»-bildet.
+#
+# Dette er et eksempel. Ferieukene er ganske like i hele Norge, men planleggingsdagene
+# varierer fra kommune til kommune. Slik tar du den i bruk:
+#   1. Kjør  python oppsett.py  (kopierer denne filen til skolerute.yaml), eller kopier den selv.
+#   2. Åpne skolerute.yaml og sjekk datoene mot skoleruta i din kommune.
+# Uten skolerute.yaml regnes alle hverdager som skoledager, og loggen minner deg på det.
+#
+# Eksempeldatoene er hentet fra Bærum kommunes «Skoleruten» (offentlig, november 2026).
+# Når kommunen legger ut neste skoleår (vanligvis om våren): legg til periodene under og flytt
+# «gjelder_til». Etter den datoen regnes alle hverdager som skoledager, og loggen minner deg på det.
+#
+# Har skolen egne fridager i tillegg, legg dem inn her også.
+#
+# Format: fra og til er første og siste fridag (begge tas med). En enkelt dag kan ha bare «fra».
+
+gjelder_til: 2028-08-20     # dagen før første skoledag høsten 2028
+
+fridager:
+  # ---- Skoleåret 2026–2027
+  - { navn: "Høstferie",            fra: 2026-09-28, til: 2026-10-02 }
+  - { navn: "Juleferie",            fra: 2026-12-19, til: 2027-01-04 }   # 4. jan er planleggingsdag
+  - { navn: "Vinterferie",          fra: 2027-02-22, til: 2027-02-26 }
+  - { navn: "Påskeferie",           fra: 2027-03-22, til: 2027-03-29 }
+  - { navn: "Kristi himmelfartsdag", fra: 2027-05-06 }
+  - { navn: "Fridag",               fra: 2027-05-07 }
+  - { navn: "17. mai",              fra: 2027-05-17 }
+  - { navn: "Sommerferie",          fra: 2027-06-19, til: 2027-08-15 }   # siste skoledag 18. juni, første 16. aug
+
+  # ---- Skoleåret 2027–2028
+  - { navn: "Valgdag",              fra: 2027-09-13 }
+  - { navn: "Høstferie",            fra: 2027-10-04, til: 2027-10-08 }
+  - { navn: "Juleferie",            fra: 2027-12-18, til: 2028-01-03 }   # 3. jan er planleggingsdag
+  - { navn: "Vinterferie",          fra: 2028-02-21, til: 2028-02-25 }
+  - { navn: "Påskeferie",           fra: 2028-04-10, til: 2028-04-17 }
+  - { navn: "1. mai",               fra: 2028-05-01 }
+  - { navn: "17. mai",              fra: 2028-05-17 }
+  - { navn: "Kristi himmelfartsdag", fra: 2028-05-25, til: 2028-05-26 }
+  - { navn: "2. pinsedag",          fra: 2028-06-05 }
+  - { navn: "Sommerferie",          fra: 2028-06-22, til: 2028-08-20 }   # siste skoledag 21. juni, første 21. aug

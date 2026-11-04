@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<title>Nå må du dra!</title>
+<style>
+{{ font_css | safe }}
+
+/* ------------------------------------------------------------------
+   Fase 5.1: «Nå må du dra!» – vises kl. 08:00–08:10 på skoledager (06 #47).
+   Samme «Galleri + barnebok» som morning.html (06 #35), men roligere og større:
+   bare det barna trenger for å komme seg ut døra. Ingen foto, ingen voksenavtaler.
+   Fargene er de samme som i morning.html – endres en farge der, endre den her også.
+   ------------------------------------------------------------------ */
+:root {
+  /* Farger (kopi fra morning.html) */
+  --passepartout: #e7e1d5;
+  --papir:        #f7f3ec;
+  --kant:         #d3cbbc;
+  --snitt:        #efeae0;
+  --blekk:        #3a3631;
+  --dempet:       #6e675c;
+  --linje:        #ddd5c7;
+  --ute-foles:    #d6e2e8;   /* himmelblå */
+  --ute-nedbor:   #dde5d5;   /* salvie */
+  --ute-vind:     #eee3c6;   /* smør */
+  --klaer:        #f0dccf;   /* fersken: «På med» */
+  --klaer-tekst:  #5e4c40;
+  --ha-med:       #dde5d5;   /* salvie: «Ha med» */
+  --ha-med-tekst: #4d5a45;
+
+  /* Tekststørrelser – større enn på dagbildet: bildet skal leses i farta */
+  --etikett:     44px;
+  --tekst:       56px;       /* kalender */
+  --liste:       62px;       /* «På med» og «Ha med» */
+  --tekst-stor:  52px;
+  --tall:       104px;
+  --kategori:    72px;
+  --tittel:     220px;       /* «Nå må du dra!» */
+  --undertekst:  64px;
+  --dato:        64px;
+
+  /* Ikoner */
+  --ikon:       200px;       /* «Ute i dag» – for de minste */
+  --ikon-figur: 116px;
+  --boks:        60px;       /* avkrysningsboksene */
+
+  --runding:     56px;
+  --luft:        64px;
+
+  --serif: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --sans:  "Jost", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --emoji: "Noto Color Emoji", "Segoe UI Emoji", "Apple Color Emoji", sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 3840px; height: 2160px; overflow: hidden; }
+body { background: var(--passepartout); color: var(--blekk); font-family: var(--sans); padding: 100px; }
+.flate {
+  width: 100%; height: 100%; overflow: hidden;
+  background: var(--papir);
+  border: 3px solid var(--kant);
+  box-shadow: inset 0 0 0 16px var(--snitt);
+  padding: 90px 140px 72px;
+  display: flex; flex-direction: column; gap: var(--luft);
+}
+.etikett { font-size: var(--etikett); font-weight: 500; letter-spacing: 0.16em;
+           text-transform: uppercase; color: var(--dempet); }
+.e { font-family: var(--emoji); font-weight: 400; line-height: 1.1; }
+.rute .tall { font-variant-numeric: lining-nums; }
+
+/* ---- Overskrift */
+header { display: flex; align-items: flex-end; justify-content: space-between; gap: 80px;
+         border-bottom: 2px solid var(--linje); padding-bottom: 44px; }
+header h1 { font-family: var(--serif); font-size: var(--tittel); font-weight: 600; line-height: 0.9; }
+header .under { font-size: var(--undertekst); color: var(--dempet); margin-top: 28px; }
+header .dato { font-family: var(--serif); font-size: var(--dato); font-weight: 500; color: var(--dempet);
+               text-align: right; white-space: nowrap; padding-bottom: 8px; }
+
+/* ---- To kolonner: ute + barnas avtaler | på med + ha med */
+.innhold { flex: 1; min-height: 0; display: flex; gap: 150px; }
+.venstre { width: 1720px; flex: none; display: flex; flex-direction: column; gap: 72px; }
+.hoyre   { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 56px; }
+
+/* Ute i dag (samme ruter som dagbildet, større ikoner) */
+.ute .etikett { margin-bottom: 28px; }
+.ruter { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; }
+.rute { border-radius: var(--runding); padding: 40px 28px;
+        display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.rute.foles  { background: var(--ute-foles); }
+.rute.nedbor { background: var(--ute-nedbor); }
+.rute.vind   { background: var(--ute-vind); }
+.rute .e { font-size: var(--ikon); line-height: 1.05; }
+.rute .tall { font-family: var(--serif); font-size: var(--tall); font-weight: 600; line-height: 1; }
+.rute .tall small { font-family: var(--sans); font-weight: 400; font-size: var(--tekst-stor); margin-left: 8px; }
+.rute .ord { font-size: var(--tekst-stor); font-weight: 500; }
+.mangler { font-size: var(--tekst-stor); color: var(--dempet); }
+
+/* Barnas avtaler i dag (samme rutenett som «I dag» på dagbildet) */
+.kalender { display: grid; grid-template-columns: max-content max-content minmax(0, 1fr);
+            font-size: var(--tekst); align-content: start; }
+.idag, .idag ul, .idag li { display: contents; }
+.idag ul { list-style: none; }
+.idag .etikett { grid-column: 1 / -1; margin-bottom: 18px; }
+.idag li:last-child > span { border-bottom: 2px solid var(--linje); }
+.idag li > span { padding: 22px 0; border-top: 2px solid var(--linje); line-height: 1.3; min-width: 0; }
+.idag .tid { padding-right: 56px; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.idag .tid.heldag { font-weight: 400; color: var(--dempet); }
+.idag .hvem { padding-right: 56px; display: flex; align-items: center; gap: 18px; white-space: nowrap; }
+.idag .prikker { display: flex; gap: 8px; }
+.idag .prikk { flex: none; width: 44px; height: 44px; border-radius: 50%; }
+.idag .prikk.felles { box-shadow: inset 0 0 0 4px var(--blekk); }
+.idag .hva { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.idag li.flere .hva { color: var(--dempet); }
+.idag .tomt { grid-column: 1 / -1; color: var(--dempet); padding: 22px 0;
+              border-top: 2px solid var(--linje); border-bottom: 2px solid var(--linje); }
+
+/* «På med» og «Ha med»: kort med store avkrysningsbokser */
+.kort { border-radius: var(--runding); padding: 52px 64px; display: flex; flex-direction: column; gap: 32px; }
+.kort.pa  { background: var(--klaer); }
+.kort.ha  { background: var(--ha-med); }
+.kort .topp { display: flex; align-items: center; justify-content: space-between; gap: 40px; }
+.kort.pa .etikett { color: var(--klaer-tekst); }
+.kort.ha .etikett { color: var(--ha-med-tekst); }
+.kort .figur { display: flex; align-items: center; gap: 28px; }
+.kort .figur .e { font-size: var(--ikon-figur); white-space: nowrap; line-height: 1; }
+.kort .kategori { font-family: var(--serif); font-size: var(--kategori); font-weight: 600; line-height: 1; }
+.kort ul { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+           gap: 30px 56px; font-size: var(--liste); }
+.kort ul.mange { row-gap: 14px; font-size: var(--tekst); }          /* 9+ plagg: tettere */
+.kort li { display: flex; align-items: center; gap: 24px; line-height: 1.25; white-space: nowrap; }
+.kort li::before { content: ""; flex: none; width: var(--boks); height: var(--boks);
+                   border: 5px solid var(--blekk); border-radius: 12px; background: var(--papir); }
+
+footer { display: flex; justify-content: space-between; font-size: 40px; color: var(--dempet); }
+</style>
+</head>
+<body>
+<div class="flate dra">
+
+  <header>
+    <div>
+      <h1>{{ dra.tittel }}</h1>
+      {% if dra.undertekst %}<div class="under">{{ dra.undertekst }}</div>{% endif %}
+    </div>
+    <div class="dato">{{ dato.ukedag }} {{ dato.dato }}</div>
+  </header>
+
+  <div class="innhold">
+
+    <div class="venstre">
+      {% if vaer and vaer.outdoor %}
+      <section class="ute">
+        <h2 class="etikett">Ute {{ vaer.outdoor.label | lower }}</h2>
+        <div class="ruter">
+          <div class="rute foles">
+            {% if ute %}<span class="e">{{ ute.foles.emoji }}</span>{% endif %}
+            <span class="tall">{{ vaer.outdoor.feels_min }}</span>
+            {% if ute %}<span class="ord">{{ ute.foles.tekst }}</span>{% endif %}
+          </div>
+          <div class="rute nedbor">
+            {% if ute %}<span class="e">{{ ute.nedbor.emoji }}</span>{% endif %}
+            <span class="tall">{{ vaer.outdoor.precip }}<small>mm</small></span>
+            {% if ute %}<span class="ord">{{ ute.nedbor.tekst }}</span>{% endif %}
+          </div>
+          {% if not ute or ute.vind.emoji %}
+          <div class="rute vind">
+            {% if ute %}<span class="e">{{ ute.vind.emoji }}</span>{% endif %}
+            <span class="tall">{{ vaer.outdoor.wind_max }}<small>m/s</small></span>
+            {% if ute %}<span class="ord">{{ ute.vind.tekst }}</span>{% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </section>
+      {% else %}
+      <div class="mangler">– &nbsp;Været er ikke tilgjengelig akkurat nå</div>
+      {% endif %}
+
+      {% if plan %}
+      <div class="kalender">
+        <section class="idag">
+          <h2 class="etikett">I dag for barna</h2>
+          {% if plan.feil %}
+          <p class="tomt">– &nbsp;Kalenderen er ikke tilgjengelig akkurat nå</p>
+          {% elif not plan.hendelser %}
+          <p class="tomt">Ingenting spesielt i dag</p>
+          {% else %}
+          <ul>
+            {% for h in plan.hendelser %}
+            <li>
+              <span class="tid{% if h.heldag %} heldag{% endif %}">{{ h.tid }}</span>
+              <span class="hvem">{% if h.felles %}<span class="prikk felles"></span>{% else %}<span class="prikker">{% for x in h.personer %}<span class="prikk" style="background: {{ x.farge }}"></span>{% endfor %}</span>{{ h.navn }}{% endif %}</span>
+              <span class="hva">{{ h.tittel }}</span>
+            </li>
+            {% endfor %}
+            {% if plan.flere %}<li class="flere"><span class="tid"></span><span class="hvem"></span><span class="hva">+{{ plan.flere }} til i kalenderen</span></li>{% endif %}
+          </ul>
+          {% endif %}
+        </section>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="hoyre">
+      {% if klar %}
+      <section class="kort pa">
+        <div class="topp">
+          <h2 class="etikett">På med</h2>
+          <div class="figur">
+            <span class="e">{% for e in klar.figur %}{{ e }}{% endfor %}</span>
+            <span class="kategori">{{ klar.kategori_tekst }}</span>
+          </div>
+        </div>
+        <ul{% if klar.huskeliste | length > 8 %} class="mange"{% endif %}>
+          {% for plagg in klar.huskeliste %}<li>{{ plagg }}</li>{% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+
+      {% if dra.ha_med %}
+      <section class="kort ha">
+        <div class="topp"><h2 class="etikett">Ha med</h2></div>
+        <ul>
+          {% for ting in dra.ha_med %}<li>{{ ting }}</li>{% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <footer>
+    <span>Oppdatert {{ oppdatert }}{% if demo %} · DEMODATA{% endif %}{% if tid_satt %} · TID SATT{% endif %}</span>
+    <span>Værdata: MET Norway</span>
+  </footer>
+
+</div>
+</body>
+</html>
