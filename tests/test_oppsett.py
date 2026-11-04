@@ -1,4 +1,6 @@
 """Tester for oppsett.py – uten TV og uten nett."""
+from pathlib import Path
+
 import pytest
 import yaml
 
@@ -114,3 +116,9 @@ def test_pairing_is_offered_when_tv_answers(tmp_path):
     o.run(tmp_path, inp=answers, reach=lambda ip: True, fonts=NoFonts,
           pair=lambda ip, data: calls.append((ip, data)) or "Koblet til.")
     assert calls == [("10.0.0.2", tmp_path / "data")]
+
+
+def test_py_cmd_points_to_the_venv(tmp_path):
+    exe = tmp_path / ".venv" / "Scripts" / "python.exe"
+    assert o.py_cmd(tmp_path, str(exe)) == str(Path(".venv") / "Scripts" / "python")
+    assert o.py_cmd(tmp_path, "/usr/bin/python3") == "python"

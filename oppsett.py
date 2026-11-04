@@ -33,6 +33,21 @@ PALETTE = [("#6d5a4a", "#dbb996"), ("#2f6aa8", "#6aa5e0"), ("#1e8a6e", "#9ee4c6"
 MARK_BAD = set(" \t&+,/:")
 
 
+def py_cmd(root: Path = ROOT, exe: str | None = None) -> str:
+    """Kommandoen brukeren skal skrive: samme Python som kjører oppsettet, f.eks. .venv\\Scripts\\python.
+
+    Står det bare «python», brukes maskinens vanlige Python – der bibliotekene ikke er installert.
+    """
+    path = Path(exe or sys.executable)
+    try:
+        rel = path.relative_to(root)
+    except ValueError:
+        return "python"
+    if rel.suffix.lower() == ".exe":
+        rel = rel.with_suffix("")
+    return str(rel)
+
+
 # ------------------------------------------------------------------ spørsmål
 
 def ask(prompt: str, default: str | None = None, parse=None, inp=input):
@@ -196,9 +211,9 @@ def pair_tv(ip: str, data: Path) -> str:
     try:
         result = asyncio.run(pair(_Cfg(ip, data)))
     except (FrameError, OSError, asyncio.TimeoutError) as exc:
-        return f"Fikk ikke koblet til ({type(exc).__name__}). Sjekk at TV-en er på, og prøv igjen: python oppsett.py --par"
+        return f"Fikk ikke koblet til ({type(exc).__name__}). Sjekk at TV-en er på, og prøv igjen: {py_cmd()} oppsett.py --par"
     if not (data / "token.txt").exists():
-        return "TV-en ga ingen nøkkel. Prøv igjen: python oppsett.py --par"
+        return f"TV-en ga ingen nøkkel. Prøv igjen: {py_cmd()} oppsett.py --par"
     return f"Koblet til TV-en (Art API {result.get('api_version')})."
 
 
@@ -281,12 +296,13 @@ def run(root: Path = ROOT, inp=input, pair=pair_tv, reach=_reachable, fonts=None
         if ask_yes("\nKoble til TV-en nå?", True, inp):
             _pair_steps(ip, root, pair, inp)
     else:
-        print(f"\nTV-en på {ip} svarer ikke nå. Slå den på og kjør: python oppsett.py --par")
+        print(f"\nTV-en på {ip} svarer ikke nå. Slå den på og kjør: {py_cmd(root)} oppsett.py --par")
 
     print("\nFerdig! Prøv:")
-    print("  python main.py --demo vinter --dry-run   # demobilde i output/, uten TV")
-    print("  python main.py --dry-run                 # ekte data, uten TV")
-    print("  python main.py                           # send bildet til TV-en")
+    py = py_cmd(root)
+    print(f"  {py} main.py --demo vinter --dry-run   # demobilde i output, uten TV")
+    print(f"  {py} main.py --dry-run                 # ekte data, uten TV")
+    print(f"  {py} main.py                           # send bildet til TV-en")
     print("Vil du endre noe senere, åpne config.yaml.")
     return 0
 
@@ -299,7 +315,7 @@ def main(argv: list[str] | None = None) -> int:
         import yaml
         cfg_path = ROOT / "config.yaml"
         if not cfg_path.exists():
-            print("Fant ikke config.yaml. Kjør først: python oppsett.py")
+            print(f"Fant ikke config.yaml. Kjør først: {py_cmd()} oppsett.py")
             return 1
         ip = (yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}).get("tv", {}).get("ip")
         if not ip:
@@ -313,7 +329,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         return run()
     except (KeyboardInterrupt, EOFError):
-        print("\nAvbrutt. Kjør python oppsett.py på nytt når du vil.")
+        print(f"\nAvbrutt. Kjør {py_cmd()} oppsett.py på nytt når du vil.")
         return 1
 
 
