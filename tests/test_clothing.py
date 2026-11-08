@@ -129,7 +129,28 @@ def test_demo_scenarios(scenario, category, rain, snow):
 
 
 
-def test_ice_cold_has_own_list_but_cold_figure():
+def test_ice_cold_has_own_list_and_own_figure():
     a = clothing_advice(raw(-24))
     assert a["trinn"] == "iskaldt" and a["kategori"] == "kaldt"
+    assert "Balaklava" in a["huskeliste"] and "Kuldekrem" in a["huskeliste"]
+    assert a["figur"] == ["🧊", "🥶"] and a["kategori_tekst"] == "Iskaldt"
+    # Ulik figuren for veldig kaldt og kaldt (som er like hverandre)
+    assert a["figur"] != clothing_advice(raw(-14))["figur"]
+    assert a["figur"] != clothing_advice(raw(-5))["figur"]
+    assert clothing_advice(raw(-14))["kategori_tekst"] == "Kaldt"
+
+
+def test_ice_cold_figure_from_config_and_snow_added():
+    a = clothing_advice(raw(-24, precip=2.0, symbols=["snow"]), {"figur": {"iskaldt": ["🐧"]}})
+    assert a["figur"] == ["🐧", "❄️"]
+    assert clothing_advice(raw(-5), {"figur": {"iskaldt": ["🐧"]}})["figur"] == ["🥶", "⛄"]
+
+
+def test_demo_ice_cold():
+    now = datetime(2026, 11, 2, 6, 0, tzinfo=OSLO)
+    points = parse_points(demo_forecast(now.astimezone(timezone.utc), "iskaldt"), OSLO)
+    raw_ = summarize(points, now)["outdoor"]["raw"]
+    assert round(raw_["feels_min"]) < -20
+    a = clothing_advice(raw_)
+    assert a["trinn"] == "iskaldt" and not a["regn"] and not a["sno"]
     assert "Balaklava" in a["huskeliste"] and "Kuldekrem" in a["huskeliste"]

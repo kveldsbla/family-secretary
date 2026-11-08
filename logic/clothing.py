@@ -28,8 +28,9 @@ DEFAULTS: dict = {
     "grenser": {"iskaldt": -20, "veldig_kaldt": -10, "kaldt": 0, "kjolig": 8, "mildt": 16},
     "regn_mm": 1.0,     # mer nedbør enn dette i skoletiden → regntøy
     "vind_ms": 8.0,     # sterkere vind enn dette → vindtett
-    # Emojier i værfiguren.
+    # Emojier i værfiguren. «iskaldt» har egen figur (I-03); «veldig kaldt» bruker «kaldt».
     "figur": {
+        "iskaldt": ["🧊", "🥶"],
         "kaldt": ["🥶", "⛄"],
         "kjolig": ["🧥", "🧤"],
         "mildt": ["🧥"],
@@ -144,7 +145,8 @@ def clothing_advice(raw: dict | None, override: dict | None = None) -> dict | No
 
     # Værfigur: kategori + regn (også ved sludd) + snø.
     show_rain = rain or sleet
-    figure = list(rules["figur"][category])
+    # Et trinn med egen figur (iskaldt) går foran kategorien.
+    figure = list(rules["figur"].get(step) or rules["figur"][category])
     if show_rain:
         figure += rules["figur"]["regn"]
     if snow:
@@ -152,7 +154,7 @@ def clothing_advice(raw: dict | None, override: dict | None = None) -> dict | No
 
     return {
         "kategori": category,
-        "kategori_tekst": CATEGORY_TEXT[category],
+        "kategori_tekst": "Iskaldt" if step == "iskaldt" else CATEGORY_TEXT[category],
         "trinn": step,
         "regn": show_rain,
         "sno": snow,

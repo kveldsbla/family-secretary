@@ -76,6 +76,22 @@ def test_html_shows_outdoor_icons():
     assert "Ute i dag" in html and "føles som" in html and "Veldig kaldt" in html   # demo «vinter»: ca. −10°
 
 
+@pytest.mark.parametrize("extra, template_text", [
+    (["--tid", "dag"], "Klesråd"),
+    (["--tid", "kveld"], "Klesråd"),
+    (["--dra"], "Nå må du dra!"),
+])
+def test_demo_ice_cold_everywhere(tmp_path, monkeypatch, extra, template_text):
+    """I-04: --demo iskaldt gir 🧊, egen figur og iskaldt-huskelisten på dag-, kvelds- og dra-bildet."""
+    import main
+    monkeypatch.setattr(main, "OUTPUT", tmp_path)
+    assert main.main(["--demo", "iskaldt", *extra, "--html-only", "--config", "config.example.yaml"]) == 0
+    html = (tmp_path / "siste.html").read_text(encoding="utf-8")
+    assert template_text in html
+    assert "Balaklava" in html and "Kuldekrem" in html and "🧊🥶" in html and "Iskaldt" in html
+    assert "🥶⛄" not in html
+
+
 def test_html_shows_photo_with_caption():
     ctx = _context()
     ctx["foto"] = {"src": "file:///C:/bilder/hytta.jpg", "tekst": "Hytta <i>i</i> høstferien", "fil": "hytta.jpg"}
@@ -115,3 +131,13 @@ def test_evening_without_evening_colour_falls_back():
     del plan["hendelser"][0]["personer"][0]["farge_kveld"]
     html = build_html("morning.html", {**_context(), "plan": plan, "kveld": True})
     assert "background: #c96f22" in html
+
+
+def test_countdown_line_in_header():
+    """Nedtellingen (I-13) står i datolinjen. Uten nedtelling: ingen linje."""
+    ctx = _context()
+    ctx["nedtelling"] = {"tekst": "45 dager til juleferie", "emoji": "🎄", "dager": 45}
+    html = build_html("morning.html", ctx)
+    header = html.split("<header>")[1].split("</header>")[0]
+    assert "45 dager til juleferie" in header and "🎄" in header
+    assert 'class="nedtelling"' not in build_html("morning.html", _context())

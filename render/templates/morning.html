@@ -186,6 +186,17 @@ header h1 { font-family: var(--serif); font-size: var(--overskrift); font-weight
 .foto figcaption { font-family: var(--serif); font-style: italic; font-size: var(--tekst);
                    color: var(--dempet); padding-left: 24px; }
 
+/* ---- Nedtelling (I-13): «🎄 45 dager til juleferie» i datolinjen, ved siden av ukenummeret */
+.nedtelling { display: flex; align-items: center; gap: 20px; font-size: var(--tekst-stor); font-weight: 500; }
+.nedtelling .e { font-size: var(--ikon-liten); line-height: 1; }
+header .hoyre-topp { display: flex; align-items: baseline; gap: 72px; }
+
+/* ---- Sol (I-12): «Sol 07:47–16:15 · 8 t 28 min · −5 min» på egen linje under datoen.
+   Gjør datolinjen ca. 90 px høyere (da er iskaldt om kvelden det trangeste bildet). */
+.sol { font-size: var(--tekst-stor); color: var(--dempet); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.sol .tid, .sol b { color: var(--blekk); font-weight: 500; }
+header .venstre-topp { display: flex; flex-direction: column; gap: 20px; }
+
 footer { display: flex; justify-content: space-between; font-size: var(--etikett); color: var(--dempet); }
 </style>
 </head>
@@ -193,8 +204,18 @@ footer { display: flex; justify-content: space-between; font-size: var(--etikett
 <div class="flate{% if plan and plan.hendelser %} med-kalender{% endif %}">
 
   <header>
-    <h1>{{ dato.ukedag }} {{ dato.dato }}</h1>
-    <div class="etikett">Uke {{ dato.uke }}</div>
+    <div class="venstre-topp">
+      <h1>{{ dato.ukedag }} {{ dato.dato }}</h1>
+      {# Om kvelden gjelder soltidene i morgen (samme dag som været) #}
+      {% if sol %}<div class="sol">Sol{% if sol.dag and sol.dag != "I dag" %} {{ sol.dag | lower }}{% endif %}
+        {% if sol.polar %}<span class="tid">{{ sol.polar | lower }}</span>
+        {%- else %}<span class="tid">{{ sol.opp }}–{{ sol.ned }}</span> · {{ sol.lengde }}
+        {%- if sol.endring %} · <b>{{ sol.endring }}</b>{% endif %}{% endif %}</div>{% endif %}
+    </div>
+    <div class="hoyre-topp">
+      {% if nedtelling %}<div class="nedtelling"><span class="e">{{ nedtelling.emoji }}</span>{{ nedtelling.tekst }}</div>{% endif %}
+      <div class="etikett">Uke {{ dato.uke }}</div>
+    </div>
   </header>
 
   <div class="innhold">
@@ -317,7 +338,7 @@ footer { display: flex; justify-content: space-between; font-size: var(--etikett
 
   <footer>
     <span>Oppdatert {{ oppdatert }}{% if demo %} · DEMODATA{% endif %}{% if tid_satt %} · TID SATT{% endif %}</span>
-    <span>Værdata: MET Norway</span>
+    <span>{% if sol %}Vær- og soldata{% else %}Værdata{% endif %}: MET Norway</span>
   </footer>
 
 </div>

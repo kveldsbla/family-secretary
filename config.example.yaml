@@ -57,8 +57,9 @@ klesrad:
   regn_mm: 1.0      # mer nedbør enn dette i skoletiden → regntøy
   vind_ms: 8        # sterkere vind enn dette → vindtett
 
-  # Værfiguren. «Veldig kaldt» bruker samme figur som «kaldt».
+  # Værfiguren. «Iskaldt» har egen figur; «veldig kaldt» bruker samme figur som «kaldt».
   figur:
+    iskaldt: ["🧊", "🥶"]   # under −20 (valgfri, standard i logic/clothing.py)
     kaldt:  ["🥶", "⛄"]
     kjolig: ["🧥", "🧤"]
     mildt:  ["🧥"]
@@ -133,6 +134,24 @@ dra:
   ha_med: ["Sekk", "Matpakke", "Drikkeflaske"]   # samme hver dag
   maks_hendelser: 4    # «I dag for barna»: bare hendelser merket med et barn, og felles heldag
   skolerute: "skolerute.yaml"
+
+nedtelling:
+  # Valgfritt – trenger ikke stå i config.yaml. Øverst på dag- og kveldsbildet vises den nærmeste
+  # nedtellingen, f.eks. «🎄 45 dager til juleferie». Feriene (perioder med «ferie» i navnet)
+  # hentes fra skolerute.yaml. Egne datoer (bursdag, hyttetur) legges i lista under.
+  # Bare én vises: den nærmeste. På dagen: «I dag: julaften!», dagen før: «I morgen: julaften!».
+  maks_dager: 60          # lenger unna enn dette: ingen linje
+  datoer:
+    - { dato: 2026-12-24, tekst: "julaften", emoji: "🎅" }   # emoji er valgfri (standard 🎉)
+    - { dato: 2027-03-14, tekst: "hyttetur" }
+  # Kortform uten maks_dager går også:  nedtelling: [ { dato: 2026-12-24, tekst: "julaften" } ]
+
+sol:
+  # Valgfritt – trenger ikke stå i config.yaml. Under datoen øverst vises sol opp og ned og
+  # dagslengden, f.eks. «Sol 07:47–16:15 · 8 t 28 min · −5 min» (om kvelden: «Sol i morgen …»). Tidene kommer
+  # fra MET Sunrise 3.0 for koordinatene under «sted:», og hver dato hentes bare én gang.
+  vis: true               # false = ingen sollinje
+  endring: alltid         # alltid (+3 min / −5 min) · lengre (bare når dagene blir lengre) · aldri
 
 personer:
   # Hvem en kalenderhendelse gjelder, merkes med initialen først i tittelen, så et mellomrom:

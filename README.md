@@ -18,6 +18,7 @@ Every morning and afternoon it gathers the day's weather, the family calendar an
 - What to wear, as a checklist and as weather icons for the youngest
 - The family calendar, with a colour and name for each person
 - A family photo of the day (optional)
+- Sunrise, sunset and day length, and a countdown to the next school holiday or a date you choose
 - From 18:00: tonight and tomorrow, in calm evening colours
 - 08:00–08:10 on school days: "Nå må du dra!" ("Time to go!"), with only what the children need
 
@@ -81,23 +82,69 @@ After setup, **`config.yaml` is the only file you need to open.** It holds your 
 
 ## Running it automatically
 
-Each run picks the right picture from the clock, so a scheduler only needs to start `main.py` at fixed times (for example 08:00, 08:10 and 18:05). Note that each upload switches the TV to Art Mode, even if someone is watching.
+Each run picks the right picture from the clock, so a scheduler only needs to start the program at fixed times. `automatisk.py` does the rest: on school days it wakes the TV first, and it tries again if the TV does not answer.
 
-- **Windows:** Task Scheduler (guide coming)
-- **Raspberry Pi:** a `systemd` timer (guide coming)
+### Windows: Task Scheduler
 
-Exit codes: `0` OK, `1` error, `2` the TV did not answer (try again later).
+Task Scheduler is built into Windows, so there is nothing to install and no administrator rights are needed.
+
+1. Check that one run works, with a window so you can follow it:
+   ```powershell
+   .venv\Scripts\python automatisk.py --planlagt 14:30
+   ```
+   Add `--ikke-vekk` to skip waking the TV, or `--helg` to pretend it is a day off.
+2. Let Windows wake the PC from sleep: Control Panel → Power Options → Change plan settings → Change advanced power settings → Sleep → Allow wake timers → **Enable**.
+3. From the project folder, create the tasks:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File sett-opp-oppgaver.ps1
+   ```
+   The script uses the folder it is in. If you move the project, run it again. Running it again replaces the tasks; `-Fjern` removes them.
+4. Check the tasks and their next run:
+   ```powershell
+   Get-ScheduledTask -TaskPath \Familiehub\ | Get-ScheduledTaskInfo | Select-Object TaskName, NextRunTime
+   ```
+   Or open `taskschd.msc` → Task Scheduler Library → Familiehub.
+
+| Time  | Days          | Picture                                    |
+| ----- | ------------- | ------------------------------------------ |
+| 07:00 | every day     | morning                                    |
+| 08:00 | Monday–Friday | "Nå må du dra!" (school days only)         |
+| 08:10 | Monday–Friday | back to the day picture                    |
+| 15:00 | every day     | afternoon                                  |
+| 18:05 | every day     | evening, in evening colours                |
+
+To change the times, edit the list at the top of `sett-opp-oppgaver.ps1` and run it again.
+
+**What a run does**
+
+- **School days** (from `skolerute.yaml`): wakes the TV with its power key over the network, switches it to Art Mode and uploads. Up to three attempts, five minutes apart.
+- **Weekends and holidays**: does not wake the TV. Up to 12 attempts, ten minutes apart, so the picture arrives once someone turns the TV on.
+- **Someone is watching TV**: the TV is left alone, except from 08:00 to 08:10 on school days, when it is switched to Art Mode.
+- **Missed runs** (the PC was off or asleep): run as soon as the PC is back. More than 30 minutes late means no waking and a single attempt.
+
+**Limitations**
+
+- The tasks run only while you are logged in. Sleep and a locked screen are fine; after a restart, log in again.
+- When the PC is off, the last picture stays on the TV.
+- Waking plays the TV's start-up chime and a few seconds of sound before Art Mode.
+- Waking is tested only on the Frame Pro (2025). On other models, the Art Mode part of the TV may go to sleep sooner or later. `tv_sjekk.py` checks the TV without changing anything and logs to `logs\tv-sjekk.csv`; `tv_sjekk.py --til-sovnet` (or double-click `tv-sovnet.cmd`) tells you when it has gone to sleep.
+
+**Logs:** `logs\automatisk.log` (the scheduled runs) and `logs\familiehub.log` (each picture). Exit codes: `0` updated, `1` error, `2` the TV did not answer after all attempts.
+
+### Raspberry Pi
+
+A `systemd` timer (guide coming). `automatisk.py` works unchanged; only the scheduling differs.
 
 ## Privacy
 
-Your settings (`config.yaml`), the calendar link (`.env`), the TV key (`data/`), photos, pictures and logs stay on your computer and are listed in `.gitignore`. The program contacts only MET Norway (weather), your calendar link and the TV on your home network.
+Your settings (`config.yaml`), the calendar link (`.env`), the TV key (`data/`), photos, pictures and logs stay on your computer and are listed in `.gitignore`. The program contacts only MET Norway (weather and sunrise), your calendar link and the TV on your home network.
 
 ## Acknowledgements
 
 The Samsung Frame upload is built on [smart-frame-tv](https://github.com/Seagey/smart-frame-tv) (MIT licence), with a fix for encrypted uploads on the Frame Pro. Thank you for the groundwork.
 
 - TV connection: [samsung-tv-ws-api](https://github.com/NickWaterton/samsung-tv-ws-api) (MIT)
-- Weather data: [MET Norway](https://api.met.no), CC BY 4.0
+- Weather and sunrise data: [MET Norway](https://api.met.no), CC BY 4.0
 - Fonts: Cormorant Garamond, Jost and Noto Color Emoji, all under the SIL Open Font License; downloaded by `hent_fonter.py`, not included here
 
 ## Licence
@@ -114,6 +161,7 @@ Family Secretary lager et rolig bilde av familiens dag (vær, klesråd, kalender
 2. Kjør kommandoene under «Installation» i PowerShell.
 3. `oppsett.py` stiller spørsmålene og kobler til TV-en (sett TV-en i Art Mode og velg «Tillat»).
 4. Etterpå er `config.yaml` det eneste dokumentet du trenger å endre. `config.example.yaml` viser alt som kan stilles inn.
+5. Automatisk oppdatering på Windows: `powershell -ExecutionPolicy Bypass -File sett-opp-oppgaver.ps1` (se «Running it automatically»).
 
 Hobbyprosjekt, delt som det er, uten løfte om support.
 

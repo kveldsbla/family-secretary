@@ -165,6 +165,7 @@ def parse_points(data: dict, tz: ZoneInfo) -> list[Point]:
 DEMO_SCENARIOS = {
     # navn: (middeltemp, døgnvariasjon, vind m/s, symbol om dagen, nedbør mm/t)
     "vinter": (-4.0, 3.0, 5.0, "lightsnow", 0.4),
+    "iskaldt": (-17.0, 3.0, 5.0, "clearsky", 0.0),   # klarvær og bris: føles som ca. −24 til −28° (I-04)
     "regn": (6.0, 2.0, 7.0, "rain", 1.2),
     "sol": (17.0, 5.0, 2.0, "clearsky", 0.0),
 }

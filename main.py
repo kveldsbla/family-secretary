@@ -21,13 +21,15 @@ import re
 import shutil
 import sys
 import time
-from datetime import datetime, time as dtime, timezone
+from datetime import datetime, time as dtime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import yaml
 
 from logic.clothing import clothing_advice, summary_line
+from logic.countdown import countdown, holidays
+from logic.countdown import settings as countdown_settings
 from logic.dates import norsk_dato
 from logic.outdoor import outdoor_icons
 from logic.day_plan import build_day, demo_events, load_persons
@@ -39,6 +41,7 @@ from render.render import RenderError, build_html, find_chrome, render_png
 from sources.calendar import ENV_KEY, CalendarError, events_between, fetch_ics
 from sources.envfile import read_env
 from sources.photos import photo_of_the_day
+from sources.sun import SunError, demo_sun, fetch_sun, parse_sun, sun_line
 from sources.weather import WeatherError, demo_forecast, fetch_forecast, parse_points
 
 ROOT = Path(__file__).resolve().parent
@@ -200,6 +203,61 @@ def get_leave(cfg: dict, now: datetime, forced: bool, demo: bool) -> dict | None
     return None
 
 
+def get_countdown(cfg: dict, today) -> dict | None:
+    """Nærmeste nedtelling (I-13): neste ferie i skolerute.yaml eller en egen dag i config.yaml.
+
+    None = ingenting innen maks_dager (standard 60), og linjen vises ikke. Feil stopper aldri bildet.
+    """
+    try:
+        own, maks = countdown_settings(cfg.get("nedtelling"))
+        school = load_school_calendar(ROOT / str(leave_settings(cfg.get("dra"))["skolerute"]))
+        c = countdown(today, holidays(school, today) + own, maks)
+    except (OSError, ValueError, TypeError, yaml.YAMLError) as exc:
+        log.error("Nedtelling feilet (sjekk «nedtelling:» i config.yaml og skolerute.yaml): %s", exc)
+        return None
+    log.info("Nedtelling: %s", f"{c['dager']} dager" if c else "ingen innen %d dager" % maks)
+    return c
+
+
+SUN_CHANGE = ("alltid", "lengre", "aldri")
+
+
+def get_sun(cfg: dict, tz: ZoneInfo, now_local: datetime, demo: str | None) -> dict | None:
+    """Sol opp/ned og dagslengde (I-12) for samme dag som været (om kvelden: i morgen).
+
+    Endringen regnes mot dagen før. None = sollinjen vises ikke (slått av, eller feil). Feil stopper
+    aldri bildet. Manglende tall for dagen før gir linjen uten endring.
+    """
+    sol = cfg.get("sol") or {}
+    if sol.get("vis") is False:
+        return None
+    day, label = target_day(now_local, int((cfg.get("dagen") or {}).get("kveld_fra", EVENING_FROM)))
+    show_change = str(sol.get("endring", "alltid")).lower()
+    if show_change not in SUN_CHANGE:
+        log.error("Sol: «endring» i config.yaml må være alltid, lengre eller aldri – bruker «alltid»")
+        show_change = "alltid"
+    try:
+        if demo:
+            today, before = demo_sun(day, tz), demo_sun(day, tz, day_before=True)
+        else:
+            place, ua = cfg["sted"], cfg["yr"]["user_agent"]
+            def fetch(d):
+                return fetch_sun(place["lat"], place["lon"], d, tz, ua, DATA / "sun_cache.json")
+            today = fetch(day)
+            try:
+                before = fetch(day - timedelta(days=1))
+            except SunError as exc:
+                log.warning("Sol: fant ikke dagen før (%s) – viser linjen uten endring", exc)
+                before = None
+        line = sun_line(parse_sun(today, tz), parse_sun(before, tz) if before else None, show_change)
+    except (SunError, KeyError, TypeError, ValueError) as exc:
+        log.error("Sol feilet: %s", exc)
+        return None
+    line["dag"] = label                     # «I dag» eller «I morgen» (fra kveld_fra)
+    log.info("Sol: %s", line.get("polar") or f"{line['opp']}–{line['ned']} ({line['endring'] or 'uten endring'})")
+    return line
+
+
 def get_photo(cfg: dict, day) -> dict | None:
     """Dagens familiefoto fra mappen «bilder» (eller foto: mappe: i config.yaml).
 
@@ -250,7 +308,7 @@ def run_undo(cfg: dict) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Lager dagens familiehub-bilde og sender det til TV-en.")
     parser.add_argument("--dry-run", action="store_true", help="lag bildet lokalt uten å sende til TV-en")
-    parser.add_argument("--demo", nargs="?", const="vinter", choices=["vinter", "regn", "sol"],
+    parser.add_argument("--demo", nargs="?", const="vinter", choices=["vinter", "iskaldt", "regn", "sol"],
                         help="bruk oppdiktet vær og kalender (standard: vinter)")
     parser.add_argument("--html-only", action="store_true", help="lag bare output/siste.html")
     parser.add_argument("--tid", metavar="TID",
@@ -296,6 +354,8 @@ def main(argv: list[str] | None = None) -> int:
                          max_items=dra["maks_hendelser"] if dra else None),
         "ute": get_outdoor(cfg, vaer),
         "foto": None if dra else get_photo(cfg, now.date()),
+        "nedtelling": None if dra else get_countdown(cfg, now.date()),
+        "sol": None if dra else get_sun(cfg, tz, now, args.demo),
         "dra": dra,
         "kveld": kveld,
         "oppdatert": now.strftime("%H:%M"),

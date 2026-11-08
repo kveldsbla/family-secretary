@@ -93,8 +93,8 @@ def test_skolerute_utdatert_gir_advarsel(caplog):
 
 # ---------------------------------------------------------------- skolerute.yaml
 
-def test_skolerute_i_prosjektet_kan_leses():
-    cal = load_school_calendar(ROOT / "skolerute.yaml")
+def test_skolerute_eksempelet_kan_leses():
+    cal = load_school_calendar(ROOT / "skolerute.example.yaml")   # i Git; skolerute.yaml lages av oppsett.py
     assert cal and cal.gjelder_til == date(2028, 8, 20)
     assert free_reason(date(2026, 9, 30), cal) == "Høstferie"
     assert free_reason(date(2026, 12, 21), cal) == "Juleferie"
@@ -144,7 +144,19 @@ def test_uten_barn_i_config_vises_alt():
 
 # ---------------------------------------------------------------- hele flyten
 
-def test_demo_kl_0800_lager_dra_bildet(tmp_path, monkeypatch):
+class _Onsdag(datetime):
+    """Fast skoledag (onsdag 4. november 2026), så testene virker også i helger og ferier."""
+    @classmethod
+    def now(cls, tz=None):
+        return cls(2026, 11, 4, 6, 0, tzinfo=tz)
+
+
+@pytest.fixture
+def skoledag(monkeypatch):
+    monkeypatch.setattr(main, "datetime", _Onsdag)
+
+
+def test_demo_kl_0800_lager_dra_bildet(tmp_path, monkeypatch, skoledag):
     monkeypatch.setattr(main, "OUTPUT", tmp_path)
     assert main.main(["--demo", "vinter", "--tid", "dra", "--html-only", "--config", "config.example.yaml"]) == 0
     html = (tmp_path / "siste.html").read_text(encoding="utf-8")
@@ -153,7 +165,7 @@ def test_demo_kl_0800_lager_dra_bildet(tmp_path, monkeypatch):
     assert 'class="foto"' not in html
 
 
-def test_demo_kl_0810_lager_vanlig_dagbilde(tmp_path, monkeypatch):
+def test_demo_kl_0810_lager_vanlig_dagbilde(tmp_path, monkeypatch, skoledag):
     monkeypatch.setattr(main, "OUTPUT", tmp_path)
     assert main.main(["--demo", "vinter", "--tid", "08:10", "--html-only", "--config", "config.example.yaml"]) == 0
     html = (tmp_path / "siste.html").read_text(encoding="utf-8")
