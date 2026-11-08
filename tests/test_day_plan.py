@@ -15,8 +15,8 @@ DAY = date(2026, 11, 4)
 PERSONER = load_persons([
     {"navn": "Voksen 1", "merke": "A", "farge": "#9b6a4a"},
     {"navn": "Voksen 2", "merke": "B", "farge": "#4a6a9b"},
-    {"navn": "Barn 8", "merke": "D", "farge": "#b0805a"},
-    {"navn": "Barn 4", "merke": "F", "farge": "#8a5a9b"},
+    {"navn": "Barn 2", "merke": "D", "farge": "#b0805a"},
+    {"navn": "Barn 3", "merke": "F", "farge": "#8a5a9b"},
 ])
 
 
@@ -34,7 +34,7 @@ def ev(title, start, end=None, all_day=False):
 
 def test_one_person():
     who, title = split_tag("F Turdag – matpakke", PERSONER)
-    assert [p.navn for p in who] == ["Barn 4"] and title == "Turdag – matpakke"
+    assert [p.navn for p in who] == ["Barn 3"] and title == "Turdag – matpakke"
 
 
 def test_several_people_in_config_order_and_separators():
@@ -119,7 +119,7 @@ def test_people_colours_and_names():
     plan = build_day([ev("A D Foreldremøte", at(19)), ev("Felles middag", at(17))], DAY, PERSONER)
     felles, mote = plan["hendelser"]
     assert felles["felles"] and felles["personer"] == [] and felles["navn"] == ""
-    assert not mote["felles"] and mote["navn"] == "Voksen 1 og Barn 8"
+    assert not mote["felles"] and mote["navn"] == "Voksen 1 og Barn 2"
     assert [p["farge"] for p in mote["personer"]] == ["#9b6a4a", "#b0805a"]
 
 
@@ -224,7 +224,7 @@ def test_html_shows_today_with_people():
     plan["tittel"] = "I dag"
     html = _html(plan)
     assert 'class="idag"' in html and "flate med-kalender" in html
-    assert "Foreldremøte" in html and "Voksen 1 og Barn 8" in html and "Hele dagen" in html
+    assert "Foreldremøte" in html and "Voksen 1 og Barn 2" in html and "Hele dagen" in html
     assert "background: #9b6a4a" in html
 
 
@@ -248,7 +248,7 @@ def test_html_more_empty_error_and_none():
 
 # ---------------------------------------------------------------- main.get_plan (uten nett)
 
-CFG = {"personer": [{"navn": "Barn 4", "merke": "F", "farge": "#8a5a9b"}]}
+CFG = {"personer": [{"navn": "Barn 3", "merke": "F", "farge": "#8a5a9b"}]}
 
 
 def test_get_plan_demo_follows_weather_day():

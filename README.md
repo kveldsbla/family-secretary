@@ -4,6 +4,8 @@ A local, privacy-first assistant for busy families, running on a computer at hom
 
 Every morning and afternoon it gathers the day's weather, the family calendar and the school holidays, works out what the children should wear and when they need to leave, and presents it all as a calm, readable picture. The first output channel is a Samsung Frame TV in Art Mode: the family's day hangs on the wall as a piece of art. More channels will follow.
 
+![The morning picture on a school day: weather, what to wear and the family calendar](docs/eksempler/dag.jpg)
+
 > **Language:** the picture, the settings and the code comments are in Norwegian (bokmål). An English version may come later. A short Norwegian guide is at the end of this page.
 
 ## Principles
@@ -21,6 +23,12 @@ Every morning and afternoon it gathers the day's weather, the family calendar an
 - Sunrise, sunset and day length, and a countdown to the next school holiday or a date you choose
 - From 18:00: tonight and tomorrow, in calm evening colours
 - 08:00–08:10 on school days: "Nå må du dra!" ("Time to go!"), with only what the children need
+
+| Evening, from 18:00 | "Nå må du dra!" at 08:00 | Below −20° |
+| --- | --- | --- |
+| ![Evening picture in dark evening colours: tonight and tomorrow](docs/eksempler/kveld.jpg) | ![The "Time to go!" picture: what to put on and what to bring](docs/eksempler/na-ma-du-dra.jpg) | ![Ice-cold day with its own weather figure and checklist](docs/eksempler/iskaldt.jpg) |
+
+The example pictures use made-up weather, people and events. `lag_eksempelbilder.py` makes them again.
 
 ## Status
 
